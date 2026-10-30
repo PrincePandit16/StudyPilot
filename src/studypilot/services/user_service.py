@@ -25,3 +25,28 @@ class UserService:
                 detail="Incorrect email or password"
             )
         return UserResponse.model_validate(user)
+
+    def get_user_profile(self, user_id: UUID) -> UserResponse:
+        user = self.repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        return UserResponse.model_validate(user)
+
+    def update_user_profile(self, user_id: UUID, user_in: UserUpdate) -> UserResponse:
+        update_data = user_in.model_dump(exclude_unset=True)
+        if "password" in update_data and update_data["password"]:
+            update_data["password_hash"] = AuthUtils.get_password_hash(update_data.pop("password"))
+
+        user = self.repo.update(user_id, update_data)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        return UserResponse.model_validate(user)
+
+    def delete_user_account(self, user_id: UUID) -> bool:
+        return self.repo.delete(user_id)

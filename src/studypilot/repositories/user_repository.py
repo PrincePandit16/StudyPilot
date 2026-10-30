@@ -11,7 +11,7 @@ class UserRepository:
     def get_by_email(self, email: str) -> User | None:
         return self.db.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
-    def get_by_id(self, user_id: str) -> User | None:
+    def get_by_id(self, user_id: UUID) -> User | None:
         return self.db.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
 
     def create(self, user_data: UserCreate) -> User:
@@ -19,9 +19,28 @@ class UserRepository:
         db_user = User(
             email=user_data.email,
             full_name=user_data.full_name,
-            password_hash=hashed_password
+            password_hash=hashed_password,
+            role=user_data.role
         )
         self.db.add(db_user)
         self.db.commit()
         self.db.refresh(db_user)
         return db_user
+
+    def update(self, user_id: UUID, update_data: dict) -> User | None:
+        user = self.get_by_id(user_id)
+        if not user:
+            return None
+        for key, value in update_data.items():
+            setattr(user, key, value)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def delete(self, user_id: UUID) -> bool:
+        user = self.get_by_id(user_id)
+        if not user:
+            return False
+        self.db.delete(user)
+        self.db.commit()
+        return True

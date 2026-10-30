@@ -22,8 +22,11 @@ class QuizQuestion(Base, TimestampMixin):
     quiz_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("quizzes.id", ondelete="CASCADE"), nullable=False, index=True)
     question_text: Mapped[str] = mapped_column(Text, nullable=False)
     question_type: Mapped[str] = mapped_column(String, nullable=False) # 'mcq', 'true-false', 'text'
+    options: Mapped[str] = mapped_column(Text, nullable=True) # JSON string of options for MCQs
     correct_answer: Mapped[str] = mapped_column(Text, nullable=False)
     explanation: Mapped[str | None] = mapped_column(Text)
+    difficulty: Mapped[str] = mapped_column(String, nullable=True)
+
 
     # Relationships
     quiz: Mapped["Quiz"] = relationship("Quiz", back_populates="questions")

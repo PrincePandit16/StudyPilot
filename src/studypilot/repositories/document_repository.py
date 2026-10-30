@@ -53,16 +53,25 @@ class DocumentRepository:
         self.session.commit()
         return True
 
-    def search_similar_chunks(self, user_id: UUID, query_embedding: List[float], limit: int = 5):
-        # This uses pgvector's L2 distance (<->)
-        # We join with Document to ensure the chunks belong to the user
+    def search_similar_chunks(self, user_id: UUID, query_embedding: List[float], document_ids: Optional[List[UUID]] = None, limit: int = 5):
+        """
+        Perform semantic search using cosine distance (<=>).
+        Returns a list of tuples (DocumentChunk, distance).
+        """
         from sqlalchemy import func
 
+        # Use cosine distance (<=>) for better NLP semantic similarity
+        # distance = 1 - cosine_similarity
         stmt = (
-            select(DocumentChunk)
+            select(DocumentChunk, DocumentChunk.embedding.cosine_distance(query_embedding))
             .join(Document)
             .where(Document.user_id == user_id)
-            .order_by(DocumentChunk.embedding.l2_distance(query_embedding))
-            .limit(limit)
         )
-        return self.session.execute(stmt).scalars().all()
+
+        if document_ids:
+            stmt = stmt.where(DocumentChunk.document_id.in_(document_ids))
+
+        stmt = stmt.order_by(DocumentChunk.embedding.cosine_distance(query_embedding)).limit(limit)
+
+        results = self.session.execute(stmt).all()
+        return results # List of (DocumentChunk, distance)

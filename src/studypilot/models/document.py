@@ -5,9 +5,12 @@ from src.studypilot.models.base import Base, TimestampMixin, UserOwnedMixin
 import enum
 
 class DocumentStatus(enum.Enum):
-    PENDING = "pending"
+    UPLOADED = "uploaded"
+    QUEUED = "queued"
     PROCESSING = "processing"
-    INDEXED = "indexed"
+    READY = "ready"
+    FAILED = "failed"
+    DELETING = "deleting"
 
 class Document(Base, TimestampMixin, UserOwnedMixin):
     __tablename__ = "documents"
@@ -15,7 +18,8 @@ class Document(Base, TimestampMixin, UserOwnedMixin):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     filename: Mapped[str] = mapped_column(String, nullable=False)
     storage_path: Mapped[str] = mapped_column(String, nullable=False)
-    status: Mapped[DocumentStatus] = mapped_column(Enum(DocumentStatus), default=DocumentStatus.PENDING)
+    sha256_hash: Mapped[str | None] = mapped_column(String, index=True)
+    status: Mapped[DocumentStatus] = mapped_column(Enum(DocumentStatus), default=DocumentStatus.UPLOADED)
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="documents")

@@ -3,8 +3,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from src.studypilot.core.database import get_db
 from src.studypilot.core.auth_utils import AuthUtils
+from src.studypilot.core.dependencies import get_current_user
 from src.studypilot.services.user_service import UserService
 from src.studypilot.schemas.user import UserCreate, UserResponse, Token
+from src.studypilot.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -22,3 +24,11 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         data={"sub": str(user.id)}
     )
     return Token(access_token=access_token, token_type="bearer")
+
+@router.post("/logout")
+async def logout():
+    return {"detail": "Successfully logged out. Please clear your token on the client side."}
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user

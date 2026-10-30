@@ -12,6 +12,7 @@ class User(Base, TimestampMixin):
     email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
     full_name: Mapped[str | None] = mapped_column(String)
+    role: Mapped[str] = mapped_column(String, default="user", nullable=False)
 
     # Relationships
     documents: Mapped[list["Document"]] = relationship("Document", back_populates="user", cascade="all, delete-orphan")
