@@ -1,0 +1,10 @@
+langgraph
+langchain
+langchain-groq
+fastapi
+uvicorn
+gradio
+pymupdf
+scikit-learn
+pydantic
+python-dotenv
